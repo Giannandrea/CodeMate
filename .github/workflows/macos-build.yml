@@ -51,24 +51,46 @@ jobs:
         id: locate
         run: |
           set -euo pipefail
-          APP_PATH=$(find "$HOME" -type d -name "TextMate.app" -maxdepth 5 -print -quit)
+
+          SEARCH_NAMES=("TextMate.app" "CodeMate.app")
+          SEARCH_ROOTS=("$HOME/build" "${GITHUB_WORKSPACE}" "$HOME")
+          APP_PATH=""
+
+          for root in "${SEARCH_ROOTS[@]}"; do
+            [[ -d "$root" ]] || continue
+            for name in "${SEARCH_NAMES[@]}"; do
+              FOUND=$(find "$root" -maxdepth 6 -type d -name "$name" -print -quit 2>/dev/null || true)
+              if [[ -n "$FOUND" ]]; then
+                APP_PATH="$FOUND"
+                break 2
+              fi
+            done
+          done
+
           if [[ -z "$APP_PATH" ]]; then
-            echo "TextMate.app not found" >&2
+            echo "TextMate.app (or CodeMate.app) not found" >&2
+            echo "Searched roots: ${SEARCH_ROOTS[*]}" >&2
             exit 1
           fi
+
+          APP_NAME="$(basename "$APP_PATH")"
+          ARCHIVE_NAME="${APP_NAME%.app}.zip"
+
           echo "App located at $APP_PATH"
           echo "app-path=$APP_PATH" >> "$GITHUB_OUTPUT"
+          echo "app-name=$APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "archive=$ARCHIVE_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Archive TextMate.app
+      - name: Archive app bundle
         run: |
           set -euo pipefail
           APP_PATH="${{ steps.locate.outputs.app-path }}"
-          ARCHIVE="TextMate.zip"
+          ARCHIVE="${{ steps.locate.outputs.archive }}"
           /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ARCHIVE"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TextMate-macOS
-          path: TextMate.zip
+          name: ${{ steps.locate.outputs.app-name }}-macOS
+          path: ${{ steps.locate.outputs.archive }}
           if-no-files-found: error
