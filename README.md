@@ -47,6 +47,22 @@ cd textmate
 ./configure && ninja TextMate/run
 ```
 
+### Fast-start bootstrap
+
+To sync dependencies and configure the build in one step, use the provided script:
+
+```sh
+./scripts/bootstrap.sh && ninja TextMate/run
+```
+
+The script uses the checked-in `Brewfile` to ensure Homebrew dependencies match CI, and accepts any arguments that `./configure` supports (for example `--debug`).
+
+### Developer tooling
+
+- The repository includes an `.editorconfig` and `.clang-format` to give consistent indentation across editors. Most editors read these files automatically.
+- Install [`pre-commit`](https://pre-commit.com/#install) (`pip install pre-commit`) and run `pre-commit install` to enable formatting and static-analysis checks before each commit. The bootstrap script will install the hook automatically when `pre-commit` is present.
+- A compilation database (`compile_commands.json`) is generated during bootstrap in the repository root. Tools such as `clang-tidy` use this for accurate diagnostics. Regenerate it by running `ninja -t compdb > compile_commands.json` from the directory containing `build.ninja`.
+
 The `./configure` script simply checks that all dependencies can be found, and then calls `bin/rave` to bootstrap a `build.ninja` file with default config set to `release` and default target set to `TextMate`.
 
 ## Building from within TextMate

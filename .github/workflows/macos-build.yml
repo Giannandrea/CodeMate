@@ -1,0 +1,74 @@
+name: macOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: macos-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-13
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            ~/Library/Logs/Homebrew
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
+      - name: Install build toolchain
+        run: brew bundle --quiet --file Brewfile
+
+      - name: Add LLVM toolchain to PATH
+        run: echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap project
+        run: ./scripts/bootstrap.sh
+
+      - name: Build TextMate
+        run: ninja TextMate
+
+      - name: Locate built app
+        id: locate
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find "$HOME" -type d -name "TextMate.app" -maxdepth 5 -print -quit)
+          if [[ -z "$APP_PATH" ]]; then
+            echo "TextMate.app not found" >&2
+            exit 1
+          fi
+          echo "App located at $APP_PATH"
+          echo "app-path=$APP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Archive TextMate.app
+        run: |
+          set -euo pipefail
+          APP_PATH="${{ steps.locate.outputs.app-path }}"
+          ARCHIVE="TextMate.zip"
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ARCHIVE"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TextMate-macOS
+          path: TextMate.zip
+          if-no-files-found: error

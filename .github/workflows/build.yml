@@ -1,18 +1,52 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+concurrency:
+  group: textmate-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: macOS-latest
+    runs-on: macos-13
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Setup
-      run: brew install boost capnp google-sparsehash multimarkdown ninja ragel
-    - name: Configure
-      run: ./configure
-    - name: Build
-      run: ninja TextMate
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache Homebrew downloads
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            ~/Library/Logs/Homebrew
+          key: ${{ runner.os }}-brew-${{ hashFiles('Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
+      - name: Install toolchain
+        run: brew bundle --quiet --file Brewfile
+
+      - name: Add LLVM tools to PATH
+        run: echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Bootstrap build files
+        run: ./scripts/bootstrap.sh
+
+      - name: Run pre-commit checks
+        uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+
+      - name: Build TextMate
+        run: ninja TextMate

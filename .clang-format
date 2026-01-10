@@ -1,0 +1,74 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+NamespaceIndentation: All
+BinPackParameters: false
+BinPackArguments: false
+AlwaysBreakTemplateDeclarations: Yes
+AlignAfterOpenBracket: Align
+AlignOperands: Align
+AlignConsecutiveDeclarations: AcrossEmptyLines
+AlignConsecutiveAssignments: AcrossEmptyLines
+AlignConsecutiveMacros: Consecutive
+AlignTrailingComments: true
+ReflowComments: true
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^<Foundation/'
+    Priority: 1
+  - Regex: '^<AppKit/'
+    Priority: 2
+  - Regex: '^<'
+    Priority: 3
+  - Regex: '^[A-Z]'
+    Priority: 4
+  - Regex: '^"'
+    Priority: 5
+ObjCBinPackProtocolList: Auto
+ObjCBlockIndentWidth: 4
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
+ObjCBreakBeforeNestedBlockParam: true
+PenaltyBreakBeforeFirstCallParameter: 200
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 30
+PenaltyBreakString: 10
+PenaltyExcessCharacter: 100
+PenaltyReturnTypeOnItsOwnLine: 80
+Cpp11BracedListStyle: true
+SpaceAfterCStyleCast: true
+SpaceAfterLogicalNot: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpacesInAngles: false
+SpacesInConditionalStatement: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+AllowAllArgumentsOnNextLine: false

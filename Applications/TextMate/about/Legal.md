@@ -2,7 +2,7 @@ Title: Legal
 
 # Legal
 
-TextMate makes use of the following frameworks.
+CodeMate makes use of the following frameworks.
 
 ## Onigmo
 
