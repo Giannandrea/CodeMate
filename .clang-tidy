@@ -37,11 +37,7 @@ Checks: >
   readability-redundant-control-flow,
   readability-redundant-smartptr-get,
   readability-use-anyofallof
-WarningsAsErrors:
-  - clang-analyzer-*
-  - bugprone-*
-  - performance-*
-  - modernize-*
+WarningsAsErrors: 'clang-analyzer-*,bugprone-*,performance-*,modernize-*'
 HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
 FormatStyle: file

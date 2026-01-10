@@ -341,7 +341,7 @@ static NSString* const kFoldingsColumnIdentifier  = @"foldings";
 		{
 			if(theme->is_dark())
 			{
-				NSImage* whiteIBeamImage = [NSImage imageNamed:@"IBeam white" inSameBundleAsClass:[self class]];		
+				NSImage* whiteIBeamImage = [NSImage imageNamed:@"IBeam white" inSameBundleAsClass:[self class]];
 				[whiteIBeamImage setSize:NSCursor.IBeamCursor.image.size];
 				[_textView setIbeamCursor:[[NSCursor alloc] initWithImage:whiteIBeamImage hotSpot:NSMakePoint(4, 9)]];
 			}

@@ -19,7 +19,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 {
 	if(reply == nil)
 		return;
-	
+
 	// Validate input or return with error
 	if(input.length == 0)
 	{
@@ -33,7 +33,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 		reply(nil, [NSError errorWithDomain:SyntaxMateErrorDomain code:SyntaxMateErrorInvalidInput userInfo:info]);
 		return;
 	}
-	
+
 	// The input parameter must be `NSAttributedString` archived into `NSData` with secure coding
 	NSKeyedUnarchiver* unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:input];
 	unarchiver.requiresSecureCoding = YES;
@@ -45,7 +45,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 		reply(nil, [NSError errorWithDomain:SyntaxMateErrorDomain code:SyntaxMateErrorInvalidInput userInfo:info]);
 		return;
 	}
-	
+
 	// Highlight source code using TextMate engine
 	NSError* error;
 	if(![SyntaxMateImpl addStylesToSourceCode:sourceCode withPath:path error:&error])
@@ -53,7 +53,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 		reply(nil, error);
 		return;
 	}
-	
+
 	//	Archive result and send it back to the client
 	NSMutableData* output = [[NSMutableData alloc] init];
 	NSKeyedArchiver* archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:output];
@@ -77,7 +77,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 		*errorPtr = [NSError errorWithDomain:SyntaxMateErrorDomain code:SyntaxMateErrorUnknownFileType userInfo:info];
 		return NO;
 	}
-	
+
 	//	Make sure that custom Theme is available TODO: Provide read-only access to UIDs via SyntaxMate protocol
 	theme_ptr theme = parse_theme(bundles::lookup(std::string("CAB58494-D1A3-4BAD-BBC6-DAED679AD20B")));
 	if(!theme)
@@ -91,7 +91,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 	NSString* plain = styled.string;
 	for(NSString* attr in @[NSForegroundColorAttributeName, NSBackgroundColorAttributeName, NSUnderlineStyleAttributeName, NSStrikethroughStyleAttributeName])
 		[styled removeAttribute:attr range:NSMakeRange(0, plain.length)];
-	
+
 	// Non-empty file type guarantees that grammar is available in the package
 	// Buffer is used because plain std::string is too short for some requests
 	ng::buffer_t buffer;
@@ -101,7 +101,7 @@ NSString* const SyntaxMateErrorDomain = @"com.macromates.SyntaxMate.Error";
 		buffer.set_grammar(item);
 		break;
 	}
-	
+
 	// Parse source code by using configured Grammar and Theme
 	buffer.wait_for_repair();
 	std::map<size_t, scope::scope_t> scopes = buffer.scopes(0, buffer.size());

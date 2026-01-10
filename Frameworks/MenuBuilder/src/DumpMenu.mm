@@ -232,11 +232,11 @@ static NSString* MBInternalDumpMenu (NSMenu* menu, NSInteger indent)
 		{
 			[res appendFormat:
 				@"%.*s{ %@%@%@%@\n%.*s\t%@%@.submenu = {\n%@%.*s\t}\n%.*s},\n",
-				(int)v.size(), v.data(), 
-				row.title, row.action, row.keyEquivalent, 
+				(int)v.size(), v.data(),
+				row.title, row.action, row.keyEquivalent,
 				row.other.count ? @"" : @",",
-				(int)v.size(), v.data(), 
-				[row.other componentsJoinedByString:@", "], 
+				(int)v.size(), v.data(),
+				[row.other componentsJoinedByString:@", "],
 				row.other.count ? @", " : @"",
 				row.submenu, (int)v.size(), v.data(), (int)v.size(), v.data()];
 		}
