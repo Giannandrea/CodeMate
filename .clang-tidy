@@ -39,7 +39,6 @@ Checks: >
   readability-use-anyofallof
 WarningsAsErrors: 'clang-analyzer-*,bugprone-*,performance-*,modernize-*'
 HeaderFilterRegex: '.*'
-AnalyzeTemporaryDtors: false
 FormatStyle: file
 User: textmate
 CheckOptions:
