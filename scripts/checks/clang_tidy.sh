@@ -7,7 +7,20 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BUILD_DIR_DEFAULT="${TM_BUILD_DIR:-${HOME}/build/TextMate}"
-CLANG_TIDY_BIN="${CLANG_TIDY:-clang-tidy}"
+
+# Find clang-tidy: prefer env var, then PATH, then Homebrew LLVM
+if [[ -n "${CLANG_TIDY:-}" ]]; then
+  CLANG_TIDY_BIN="${CLANG_TIDY}"
+elif command -v clang-tidy >/dev/null 2>&1; then
+  CLANG_TIDY_BIN="clang-tidy"
+elif [[ -x "/opt/homebrew/opt/llvm/bin/clang-tidy" ]]; then
+  CLANG_TIDY_BIN="/opt/homebrew/opt/llvm/bin/clang-tidy"
+elif [[ -x "/usr/local/opt/llvm/bin/clang-tidy" ]]; then
+  CLANG_TIDY_BIN="/usr/local/opt/llvm/bin/clang-tidy"
+else
+  CLANG_TIDY_BIN="clang-tidy"
+fi
+
 APPLE_CLANG="$(xcrun --sdk macosx --find clang 2>/dev/null || true)"
 APPLE_CLANGXX="$(xcrun --sdk macosx --find clang++ 2>/dev/null || true)"
 APPLE_SDK_PATH="$(xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
@@ -55,75 +68,75 @@ sdk_path = os.environ.get("TM_TIDY_SDK", "")
 build_root = os.environ.get("TM_TIDY_BUILD_ROOT", "")
 
 with open(orig_path, 'r', encoding='utf-8') as fh:
-  entries = json.load(fh)
+    entries = json.load(fh)
 
 sanitized = []
 for entry in entries:
-  args = entry.get('arguments')
-  if not args:
-    command = entry.get('command')
-    if not command:
-      continue
-    args = shlex.split(command)
+    args = entry.get('arguments')
+    if not args:
+        command = entry.get('command')
+        if not command:
+            continue
+        args = shlex.split(command)
 
-  filtered = []
-  skip_next = False
-  for idx, token in enumerate(args):
-    if skip_next:
-      skip_next = False
-      continue
-    if token == 'xcrun':
-      continue
-    if token == '--sdk':
-      skip_next = True
-      continue
-    if token == 'macosx' and idx > 0 and args[idx - 1] == '--sdk':
-      continue
-    if token == '-include-pch':
-      if idx + 1 < len(args):
-        skip_next = True
-      continue
-    if token.startswith('-include-pch'):
-      continue
-    if token == '-Winvalid-pch':
-      continue
-    if token == '-I':
-      if idx + 1 < len(args):
-        include_dir = args[idx + 1]
-  if build_root and include_dir.startswith(build_root):
-          os.makedirs(include_dir, exist_ok=True)
-        filtered.extend(['-I', include_dir])
-        skip_next = True
+    filtered = []
+    skip_next = False
+    for idx, token in enumerate(args):
+        if skip_next:
+            skip_next = False
+            continue
+        if token == 'xcrun':
+            continue
+        if token == '--sdk':
+            skip_next = True
+            continue
+        if token == 'macosx' and idx > 0 and args[idx - 1] == '--sdk':
+            continue
+        if token == '-include-pch':
+            if idx + 1 < len(args):
+                skip_next = True
+            continue
+        if token.startswith('-include-pch'):
+            continue
+        if token == '-Winvalid-pch':
+            continue
+        if token == '-I':
+            if idx + 1 < len(args):
+                include_dir = args[idx + 1]
+                if build_root and include_dir.startswith(build_root):
+                    os.makedirs(include_dir, exist_ok=True)
+                filtered.extend(['-I', include_dir])
+                skip_next = True
+                continue
+        if token.startswith('-I'):
+            include_dir = token[2:]
+            if build_root and include_dir.startswith(build_root):
+                os.makedirs(include_dir, exist_ok=True)
+        filtered.append(token)
+
+    if not filtered:
         continue
-    if token.startswith('-I'):
-      include_dir = token[2:]
-  if build_root and include_dir.startswith(build_root):
-        os.makedirs(include_dir, exist_ok=True)
-    filtered.append(token)
 
-  if not filtered:
-    continue
+    compiler = os.path.basename(filtered[0]) if filtered else ''
+    if 'clang++' in compiler and clangxx_path:
+        filtered[0] = clangxx_path
+    elif 'clang' in compiler and clang_path:
+        filtered[0] = clang_path
+    elif clang_path:
+        filtered.insert(0, clang_path)
 
-  compiler = os.path.basename(filtered[0]) if filtered else ''
-  if 'clang++' in compiler and clangxx_path:
-    filtered[0] = clangxx_path
-  elif 'clang' in compiler and clang_path:
-    filtered[0] = clang_path
-  elif clang_path:
-    filtered.insert(0, clang_path)
+    if sdk_path and '-isysroot' not in filtered:
+        filtered.insert(1, '-isysroot')
+        filtered.insert(2, sdk_path)
 
-  if sdk_path and '-isysroot' not in filtered:
-    filtered.insert(1, '-isysroot')
-    filtered.insert(2, sdk_path)
-
-  sanitized.append({
-    'directory': entry.get('directory'),
-    'file': entry.get('file'),
-    'arguments': filtered,
-  })
+    sanitized.append({
+        'directory': entry.get('directory'),
+        'file': entry.get('file'),
+        'arguments': filtered,
+    })
 
 with open(out_path, 'w', encoding='utf-8') as fh:
-  json.dump(sanitized, fh, indent=2)
+    json.dump(sanitized, fh, indent=2)
 PY
 
 COMPILATION_DATABASE_DIR="${SANITIZED_DIR}"
